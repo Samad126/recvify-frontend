@@ -79,7 +79,7 @@ export interface Template {
 export interface TemplateDetail extends Template {
   structureJson: {
     layout: "single-column" | "two-column";
-    sections: { type: string; position: number; required: boolean }[];
+    sections: { type: string; position: string | number; required: boolean }[];
     font: string;
     accentColor: string;
   };
@@ -136,6 +136,7 @@ export interface CvEntry<T extends EntryFields = EntryFields> {
   id: string;
   fieldsJson: T;
   sortOrder: number;
+  styleOverridesJson: StyleOverrides | null;
 }
 
 export interface CvSection {
@@ -143,6 +144,7 @@ export interface CvSection {
   sectionType: SectionType;
   title: string | null;
   sortOrder: number;
+  styleOverridesJson: StyleOverrides | null;
   entries: CvEntry[];
 }
 
@@ -172,6 +174,7 @@ export interface CvDetail {
   styleOverridesJson: StyleOverrides | null;
   contactInfoJson: ContactInfo | null;
   sourceUploadId: string | null;
+  template: TemplateDetail;
   sections: CvSection[];
 }
 

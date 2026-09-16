@@ -74,6 +74,18 @@ export function updateSection(
   });
 }
 
+/** Per-section style override (color/font/size) — cascades over the CV-level default. */
+export function updateSectionStyle(
+  cvId: string,
+  sectionId: string,
+  styleOverridesJson: StyleOverrides,
+) {
+  return authedFetch<CvSection>(`/cvs/${cvId}/sections/${sectionId}`, {
+    method: "PATCH",
+    body: { styleOverridesJson },
+  });
+}
+
 export function deleteSection(cvId: string, sectionId: string) {
   return authedFetch<void>(`/cvs/${cvId}/sections/${sectionId}`, {
     method: "DELETE",
@@ -118,6 +130,24 @@ export function updateEntry(
   }>(`/cvs/${cvId}/sections/${sectionId}/entries/${entryId}`, {
     method: "PATCH",
     body: { fieldsJson },
+  });
+}
+
+/** Per-entry style override (color/font/size) — cascades over the section/CV-level default. */
+export function updateEntryStyle(
+  cvId: string,
+  sectionId: string,
+  entryId: string,
+  styleOverridesJson: StyleOverrides,
+) {
+  return authedFetch<{
+    id: string;
+    fieldsJson: EntryFields;
+    sortOrder: number;
+    styleOverridesJson: StyleOverrides | null;
+  }>(`/cvs/${cvId}/sections/${sectionId}/entries/${entryId}`, {
+    method: "PATCH",
+    body: { styleOverridesJson },
   });
 }
 
