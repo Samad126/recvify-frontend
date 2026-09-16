@@ -28,6 +28,21 @@ export function deleteCv(cvId: string) {
   return authedFetch<void>(`/cvs/${cvId}`, { method: "DELETE" });
 }
 
+export function uploadCvPhoto(cvId: string, file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return authedFetch<{ id: string; photoUrl: string }>(`/cvs/${cvId}/photo`, {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export function deleteCvPhoto(cvId: string) {
+  return authedFetch<{ id: string; photoUrl: null }>(`/cvs/${cvId}/photo`, {
+    method: "DELETE",
+  });
+}
+
 export function createCv(payload: { templateId: string; title?: string }) {
   return authedFetch<CvListItem>("/cvs", { method: "POST", body: payload });
 }

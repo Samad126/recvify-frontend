@@ -40,6 +40,7 @@ export default async function SharePage({ params }: SharePageProps) {
         contactInfoJson={cv.contactInfoJson}
         sections={cv.sections}
         styleOverridesJson={cv.styleOverridesJson}
+        photoUrl={cv.photoUrl}
         template={cv.template}
       />
     </div>

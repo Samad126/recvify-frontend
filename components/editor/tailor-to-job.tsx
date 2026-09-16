@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import { ApplySuggestionsFooter } from "@/components/editor/apply-suggestions-footer";
+import { ExportModal } from "@/components/editor/export-modal";
 import { PreviewPanel } from "@/components/editor/preview-panel";
 import { SuggestionCard } from "@/components/editor/suggestion-card";
 import { Icon } from "@/components/ui/icon";
@@ -12,6 +13,7 @@ import * as aiSuggestionsApi from "@/lib/api/ai-suggestions";
 import * as cvsApi from "@/lib/api/cvs";
 import * as jdApi from "@/lib/api/job-descriptions";
 import type { AiSuggestion, JobDescriptionAnalysis } from "@/lib/api/types";
+import { formatRelativeTime } from "@/lib/utils/format-relative-time";
 
 const CIRCUMFERENCE = 2 * Math.PI * 45;
 
@@ -19,6 +21,7 @@ export function TailorToJob({ cvId }: { cvId: string }) {
   const queryClient = useQueryClient();
   const [rawText, setRawText] = useState("");
   const [analysis, setAnalysis] = useState<JobDescriptionAnalysis | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const cvQuery = useQuery({
     queryKey: ["cv", cvId],
@@ -173,7 +176,8 @@ export function TailorToJob({ cvId }: { cvId: string }) {
               {historyQuery.data && historyQuery.data.length > 0 && (
                 <div className="pt-sm border-t border-outline-variant">
                   <p className="text-label-md text-on-surface-variant mb-xs">
-                    Previous analyses
+                    Previous analyses — saved automatically, pick one up again
+                    anytime
                   </p>
                   <div className="flex flex-wrap gap-xs">
                     {historyQuery.data.map((jd) => (
@@ -181,9 +185,14 @@ export function TailorToJob({ cvId }: { cvId: string }) {
                         key={jd.id}
                         type="button"
                         onClick={() => loadAnalysis.mutate(jd.id)}
-                        className="text-body-sm px-sm py-xs rounded border border-outline-variant hover:border-primary-container transition-colors"
+                        className={`text-body-sm px-sm py-xs rounded border transition-colors ${
+                          analysis?.id === jd.id
+                            ? "border-primary-container bg-primary-container/10"
+                            : "border-outline-variant hover:border-primary-container"
+                        }`}
                       >
-                        {jd.matchScore}% match
+                        {jd.matchScore}% match ·{" "}
+                        {formatRelativeTime(jd.createdAt)}
                       </button>
                     ))}
                   </div>
@@ -333,13 +342,30 @@ export function TailorToJob({ cvId }: { cvId: string }) {
           </div>
 
           <div className="lg:col-span-5 flex flex-col gap-md">
-            <h2 className="text-headline-md text-on-surface">Resume Preview</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-headline-md text-on-surface">
+                Resume Preview
+              </h2>
+              <button
+                type="button"
+                onClick={() => setExportOpen(true)}
+                disabled={!cvQuery.data}
+                className="flex items-center gap-xs text-label-md text-primary-container hover:text-primary transition-colors disabled:opacity-50"
+              >
+                <Icon name="file_download" className="!text-base" />
+                Export tailored CV
+              </button>
+            </div>
             <div className="bg-surface-container-high rounded-lg border border-outline-variant flex-grow min-h-[600px] overflow-y-auto">
               {cvQuery.data && <PreviewPanel cv={cvQuery.data} />}
             </div>
           </div>
         </div>
       </main>
+
+      {exportOpen && cvQuery.data && (
+        <ExportModal cv={cvQuery.data} onClose={() => setExportOpen(false)} />
+      )}
     </div>
   );
 }

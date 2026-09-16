@@ -8,6 +8,7 @@ import * as templatesApi from "@/lib/api/templates";
 import type { CvDetail, StyleOverrides } from "@/lib/api/types";
 import { ACCENT_COLORS, FONT_OPTIONS } from "@/lib/constants/fonts";
 import { cn } from "@/lib/utils/cn";
+import { FontSizeInput } from "./font-size-input";
 
 interface StyleToolbarProps {
   cv: CvDetail;
@@ -65,7 +66,15 @@ export function StyleToolbar({ cv, zoom, onZoomChange }: StyleToolbarProps) {
   });
 
   const switchTemplate = useMutation({
-    mutationFn: (templateId: string) => cvsApi.updateCv(cv.id, { templateId }),
+    mutationFn: (templateId: string) =>
+      // Reset the CV-wide font size along with the template switch — the old
+      // size was tuned for the previous template's layout/density and can
+      // look off once the new one's spacing/columns kick in. Per-element
+      // overrides are left alone; this only touches the base.
+      cvsApi.updateCv(cv.id, {
+        templateId,
+        styleOverridesJson: { ...style, fontSize: undefined },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cv", cv.id] });
       setTemplatePickerOpen(false);
@@ -167,27 +176,10 @@ export function StyleToolbar({ cv, zoom, onZoomChange }: StyleToolbarProps) {
           ))}
         </select>
 
-        <div className="flex items-center bg-surface-container rounded p-xs">
-          <button
-            type="button"
-            onClick={() => updateStyle({ fontSize: Math.max(8, fontSize - 1) })}
-            className="text-on-surface-variant hover:text-on-surface p-xs rounded hover:bg-outline-variant/20"
-          >
-            <Icon name="text_decrease" className="!text-base" />
-          </button>
-          <span className="text-body-sm px-xs w-8 text-center text-on-surface">
-            {fontSize}
-          </span>
-          <button
-            type="button"
-            onClick={() =>
-              updateStyle({ fontSize: Math.min(32, fontSize + 1) })
-            }
-            className="text-on-surface-variant hover:text-on-surface p-xs rounded hover:bg-outline-variant/20"
-          >
-            <Icon name="text_increase" className="!text-base" />
-          </button>
-        </div>
+        <FontSizeInput
+          value={fontSize}
+          onChange={(size) => updateStyle({ fontSize: size })}
+        />
 
         <div className="h-4 w-px bg-outline-variant" />
 

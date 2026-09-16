@@ -120,6 +120,7 @@ export function PreviewPanel({ cv }: { cv: CvDetail }) {
             contactInfoJson={cv.contactInfoJson}
             sections={cv.sections}
             styleOverridesJson={cv.styleOverridesJson}
+            photoUrl={cv.photoUrl}
             template={cv.template}
             editable
             onEditContact={(patch) => editContact.mutate(patch)}

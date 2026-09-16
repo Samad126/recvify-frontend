@@ -189,7 +189,10 @@ export function EntryFieldsForm({
               value={f.level ?? ""}
               onChange={(e) =>
                 set({
-                  level: (e.target.value || undefined) as SkillsFields["level"],
+                  // Explicit null (not undefined) so it survives JSON.stringify and
+                  // actually clears the field server-side — a merge-patch can't
+                  // remove a key that's simply missing from the body.
+                  level: (e.target.value || null) as SkillsFields["level"],
                 } as Partial<SkillsFields>)
               }
               className="w-full h-10 px-sm border border-outline-variant rounded-lg bg-surface-container-lowest text-body-md text-on-surface focus:outline-none focus:border-primary-container"

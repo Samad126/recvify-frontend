@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import * as cvsApi from "@/lib/api/cvs";
 import type { CvEntry, CvSection, EntryFields } from "@/lib/api/types";
@@ -21,9 +21,19 @@ export function SectionAccordion({
   defaultExpanded,
 }: SectionAccordionProps) {
   const [expanded, setExpanded] = useState(defaultExpanded ?? true);
+  const [renaming, setRenaming] = useState(false);
+  const renameInputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: ["cv", cvId] });
+
+  const meta = SECTION_META[section.sectionType];
+
+  const renameSection = useMutation({
+    mutationFn: (title: string) =>
+      cvsApi.updateSection(cvId, section.id, { title: title || meta.label }),
+    onSuccess: invalidate,
+  });
 
   const addEntry = useMutation({
     mutationFn: () =>
@@ -80,8 +90,6 @@ export function SectionAccordion({
     reorderEntries.mutate(items);
   };
 
-  const meta = SECTION_META[section.sectionType];
-
   return (
     <div className="border border-outline-variant rounded-lg bg-surface-container-lowest overflow-hidden">
       <div
@@ -91,18 +99,53 @@ export function SectionAccordion({
             : "bg-surface-container-lowest"
         }`}
       >
-        <button
-          type="button"
-          onClick={() => setExpanded((e) => !e)}
-          className="flex items-center gap-sm text-on-surface text-headline-md flex-1 text-left"
-        >
-          <Icon
-            name={meta.icon}
-            className="text-outline group-hover:text-on-surface-variant"
+        {renaming ? (
+          <input
+            ref={renameInputRef}
+            type="text"
+            defaultValue={section.title || meta.label}
+            maxLength={100}
+            onBlur={(e) => {
+              setRenaming(false);
+              const next = e.target.value.trim();
+              if (next !== (section.title || meta.label)) {
+                renameSection.mutate(next);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Escape") {
+                e.currentTarget.value = section.title || meta.label;
+                e.currentTarget.blur();
+              }
+            }}
+            className="flex-1 text-on-surface text-headline-md bg-transparent border-b border-primary-container focus:outline-none"
           />
-          {section.title || meta.label}
-        </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setExpanded((e) => !e)}
+            className="flex items-center gap-sm text-on-surface text-headline-md flex-1 text-left"
+          >
+            <Icon
+              name={meta.icon}
+              className="text-outline group-hover:text-on-surface-variant"
+            />
+            {section.title || meta.label}
+          </button>
+        )}
         <div className="flex items-center gap-sm">
+          <button
+            type="button"
+            onClick={() => {
+              setRenaming(true);
+              requestAnimationFrame(() => renameInputRef.current?.select());
+            }}
+            className="text-outline hover:text-on-surface opacity-0 group-hover:opacity-100 transition-opacity"
+            title="Rename section"
+          >
+            <Icon name="edit" className="!text-lg" />
+          </button>
           <button
             type="button"
             onClick={() => {

@@ -1,3 +1,5 @@
+"use client";
+
 import type { CSSProperties, ReactNode } from "react";
 import { Icon } from "@/components/ui/icon";
 import type {
@@ -12,8 +14,9 @@ import type {
   SummaryFields,
   TemplateDetail,
 } from "@/lib/api/types";
+import { API_BASE_URL } from "@/lib/config";
 import { SECTION_META } from "@/lib/constants/section-meta";
-import { resolveStyle } from "@/lib/utils/style-cascade";
+import { fieldCss, resolveStyle } from "@/lib/utils/style-cascade";
 import { EditableText } from "./editable-text";
 import { ElementStylePopover } from "./element-style-popover";
 
@@ -118,11 +121,7 @@ function SectionBody({
                 placeholder="Write a short professional summary…"
                 onCommit={(text) => editField(entry.id, { text })}
                 className="text-body-md text-on-surface-variant whitespace-pre-line"
-                style={{
-                  color: s.explicitColor,
-                  fontFamily: s.fontFamily,
-                  fontSize: 14 * s.fontScale,
-                }}
+                style={fieldCss(s, 14)}
               />
             </StyleGroup>
           );
@@ -158,11 +157,7 @@ function SectionBody({
                     placeholder="Job title"
                     onCommit={(jobTitle) => editField(entry.id, { jobTitle })}
                     className="text-[16px] text-on-surface font-semibold"
-                    style={{
-                      color: title.explicitColor,
-                      fontFamily: title.fontFamily,
-                      fontSize: 16 * title.fontScale,
-                    }}
+                    style={fieldCss(title, 16)}
                   />
                 </StyleGroup>
                 <span className="text-body-sm text-on-surface-variant whitespace-nowrap flex items-center gap-xs">
@@ -182,11 +177,7 @@ function SectionBody({
                       onCommit={(startDate) =>
                         editField(entry.id, { startDate })
                       }
-                      style={{
-                        color: startDateStyle.explicitColor,
-                        fontFamily: startDateStyle.fontFamily,
-                        fontSize: 13 * startDateStyle.fontScale,
-                      }}
+                      style={fieldCss(startDateStyle, 13)}
                     />
                   </StyleGroup>
                   {" - "}
@@ -207,11 +198,7 @@ function SectionBody({
                         value={f.endDate ?? ""}
                         placeholder="End"
                         onCommit={(endDate) => editField(entry.id, { endDate })}
-                        style={{
-                          color: endDateStyle.explicitColor,
-                          fontFamily: endDateStyle.fontFamily,
-                          fontSize: 13 * endDateStyle.fontScale,
-                        }}
+                        style={fieldCss(endDateStyle, 13)}
                       />
                     </StyleGroup>
                   )}
@@ -232,11 +219,7 @@ function SectionBody({
                   placeholder="Company"
                   onCommit={(company) => editField(entry.id, { company })}
                   className="text-body-md inline-block"
-                  style={{
-                    color: company.color,
-                    fontFamily: company.fontFamily,
-                    fontSize: 14 * company.fontScale,
-                  }}
+                  style={fieldCss(company, 14, true)}
                 />
               </StyleGroup>
               <StyleGroup
@@ -255,11 +238,7 @@ function SectionBody({
                     editField(entry.id, { description })
                   }
                   className="text-body-md text-on-surface-variant whitespace-pre-line"
-                  style={{
-                    color: desc.explicitColor,
-                    fontFamily: desc.fontFamily,
-                    fontSize: 14 * desc.fontScale,
-                  }}
+                  style={fieldCss(desc, 14)}
                 />
               </StyleGroup>
             </div>
@@ -298,11 +277,7 @@ function SectionBody({
                     placeholder="Degree"
                     onCommit={(degree) => editField(entry.id, { degree })}
                     className="text-[16px] text-on-surface font-semibold"
-                    style={{
-                      color: degree.explicitColor,
-                      fontFamily: degree.fontFamily,
-                      fontSize: 16 * degree.fontScale,
-                    }}
+                    style={fieldCss(degree, 16)}
                   />
                 </StyleGroup>
                 <StyleGroup
@@ -318,11 +293,7 @@ function SectionBody({
                     placeholder="School"
                     onCommit={(school) => editField(entry.id, { school })}
                     className="text-body-md"
-                    style={{
-                      color: school.color,
-                      fontFamily: school.fontFamily,
-                      fontSize: 14 * school.fontScale,
-                    }}
+                    style={fieldCss(school, 14, true)}
                   />
                 </StyleGroup>
               </div>
@@ -339,11 +310,7 @@ function SectionBody({
                     value={f.startDate}
                     placeholder="Start"
                     onCommit={(startDate) => editField(entry.id, { startDate })}
-                    style={{
-                      color: eduStart.explicitColor,
-                      fontFamily: eduStart.fontFamily,
-                      fontSize: 13 * eduStart.fontScale,
-                    }}
+                    style={fieldCss(eduStart, 13)}
                   />
                 </StyleGroup>
                 {" - "}
@@ -359,11 +326,7 @@ function SectionBody({
                     value={f.endDate ?? ""}
                     placeholder="End"
                     onCommit={(endDate) => editField(entry.id, { endDate })}
-                    style={{
-                      color: eduEnd.explicitColor,
-                      fontFamily: eduEnd.fontFamily,
-                      fontSize: 13 * eduEnd.fontScale,
-                    }}
+                    style={fieldCss(eduEnd, 13)}
                   />
                 </StyleGroup>
               </span>
@@ -392,11 +355,7 @@ function SectionBody({
             >
               <span
                 className="inline-flex items-center gap-1 bg-surface-container text-on-surface-variant text-label-md px-2 py-1 rounded"
-                style={{
-                  color: s.explicitColor,
-                  fontFamily: s.fontFamily,
-                  fontSize: 12 * s.fontScale,
-                }}
+                style={fieldCss(s, 12)}
               >
                 <EditableText
                   editable={editable}
@@ -420,6 +379,8 @@ function SectionBody({
           const f = entry.fieldsJson as CertificationFields;
           const fs = entry.styleOverridesJson;
           const name = fieldStyle(fs, "name");
+          const issuer = fieldStyle(fs, "issuer");
+          const date = fieldStyle(fs, "date");
           return (
             <div
               key={entry.id}
@@ -439,11 +400,7 @@ function SectionBody({
                   placeholder="Certification"
                   onCommit={(name) => editField(entry.id, { name })}
                   className="text-body-md text-on-surface"
-                  style={{
-                    color: name.explicitColor,
-                    fontFamily: name.fontFamily,
-                    fontSize: 14 * name.fontScale,
-                  }}
+                  style={fieldCss(name, 14)}
                 />
               </StyleGroup>
               <span className="text-body-sm text-on-surface-variant whitespace-nowrap flex items-center gap-xs">
@@ -459,11 +416,7 @@ function SectionBody({
                     value={f.issuer ?? ""}
                     placeholder="Issuer"
                     onCommit={(issuer) => editField(entry.id, { issuer })}
-                    style={{
-                      color: fieldStyle(fs, "issuer").explicitColor,
-                      fontFamily: fieldStyle(fs, "issuer").fontFamily,
-                      fontSize: 13 * fieldStyle(fs, "issuer").fontScale,
-                    }}
+                    style={fieldCss(issuer, 13)}
                   />
                 </StyleGroup>
                 <StyleGroup
@@ -478,11 +431,7 @@ function SectionBody({
                     value={f.date ?? ""}
                     placeholder="Date"
                     onCommit={(date) => editField(entry.id, { date })}
-                    style={{
-                      color: fieldStyle(fs, "date").explicitColor,
-                      fontFamily: fieldStyle(fs, "date").fontFamily,
-                      fontSize: 13 * fieldStyle(fs, "date").fontScale,
-                    }}
+                    style={fieldCss(date, 13)}
                   />
                 </StyleGroup>
               </span>
@@ -515,11 +464,7 @@ function SectionBody({
                 placeholder="Title"
                 onCommit={(t) => editField(entry.id, { title: t })}
                 className="text-[16px] text-on-surface font-semibold mb-xs"
-                style={{
-                  color: title.explicitColor,
-                  fontFamily: title.fontFamily,
-                  fontSize: 16 * title.fontScale,
-                }}
+                style={fieldCss(title, 16)}
               />
             </StyleGroup>
             <StyleGroup
@@ -536,11 +481,7 @@ function SectionBody({
                 placeholder="Text"
                 onCommit={(t) => editField(entry.id, { text: t })}
                 className="text-body-md text-on-surface-variant whitespace-pre-line"
-                style={{
-                  color: text.explicitColor,
-                  fontFamily: text.fontFamily,
-                  fontSize: 14 * text.fontScale,
-                }}
+                style={fieldCss(text, 14)}
               />
             </StyleGroup>
           </div>
@@ -601,13 +542,7 @@ function SectionBlock({
               ? "text-on-surface border-outline-variant/70"
               : "text-on-surface border-outline-variant"
           }`}
-          style={{
-            fontFamily: sectionStyle.fontFamily,
-            fontSize: 14 * sectionStyle.fontScale,
-            // Section headers stay neutral by default (matching the base template)
-            // — only tint them once this section has its own explicit color override.
-            color: section.styleOverridesJson?.accentColor,
-          }}
+          style={fieldCss(sectionStyle, 14, true)}
         />
       </StyleGroup>
       <SectionBody
@@ -624,6 +559,8 @@ export interface ResumeDocumentData {
   contactInfoJson: ContactInfo | null;
   sections: CvSection[];
   styleOverridesJson: StyleOverrides | null;
+  /** Relative URL served by the backend (e.g. "/photos/xyz.jpg") — the caller prefixes it with API_BASE_URL. */
+  photoUrl?: string | null;
   /** Drives layout (single/two-column + sidebar membership) and the per-template default font/color. */
   template?: TemplateDetail;
 }
@@ -633,6 +570,7 @@ export function ResumeDocument({
   contactInfoJson,
   sections,
   styleOverridesJson,
+  photoUrl,
   template,
   editable = false,
   ...handlers
@@ -671,8 +609,6 @@ export function ResumeDocument({
   // Name/contact-line stay neutral by default (no template-driven tint) —
   // only an *explicit* accent (per-field or CV-wide) colors them, unlike the
   // title which inherits the template's accent like every other styled run.
-  const neutralColor = (key: string) =>
-    fieldOverrides?.[key]?.accentColor ?? styleOverridesJson?.accentColor;
   const neutralFont = (key: string) =>
     resolveStyle(templateLayer, styleOverridesJson, fieldOverrides?.[key]);
 
@@ -699,120 +635,110 @@ export function ResumeDocument({
           : undefined),
       }}
     >
-      <div className="border-b-2 border-on-surface pb-md mb-lg">
-        <StyleGroup
-          editable={editable}
-          label="Name"
-          override={fieldOverrides?.fullName}
-          onStyleChange={(s) => headerFieldStyle("fullName", s)}
-        >
-          <EditableText
-            as="h1"
-            editable={editable}
-            value={contact?.fullName || ""}
-            placeholder="Your Name"
-            onCommit={(fullName) => editContact({ fullName })}
-            className="text-headline-xl text-on-surface uppercase tracking-tight"
-            style={{
-              color: neutralColor("fullName"),
-              fontFamily: neutralFont("fullName").fontFamily,
-              fontSize: 32 * neutralFont("fullName").fontScale,
-            }}
+      <div className="border-b-2 border-on-surface pb-md mb-lg flex items-center gap-md">
+        {photoUrl && (
+          // biome-ignore lint/performance/noImgElement: user-uploaded photo, no next/image domain config for it
+          <img
+            src={`${API_BASE_URL}${photoUrl}`}
+            alt=""
+            className="size-[84px] rounded-full object-cover shrink-0"
           />
-        </StyleGroup>
-        <StyleGroup
-          editable={editable}
-          label="Title"
-          override={fieldOverrides?.title}
-          onStyleChange={(s) => headerFieldStyle("title", s)}
-        >
-          <EditableText
-            as="p"
+        )}
+        <div className="flex-1 min-w-0">
+          <StyleGroup
             editable={editable}
-            value={contact?.title ?? ""}
-            placeholder="Professional title"
-            onCommit={(title) => editContact({ title })}
-            className="text-headline-md mt-xs"
-            style={{
-              color: titleStyle.color,
-              fontFamily: titleStyle.fontFamily,
-              fontSize: 18 * titleStyle.fontScale,
-            }}
-          />
-        </StyleGroup>
-        <div className="flex flex-wrap gap-md mt-sm text-on-surface-variant text-body-sm">
-          {(editable || contact?.email) && (
-            <span className="flex items-center gap-xs">
-              <Icon name="mail" className="!text-sm" />
-              <StyleGroup
-                editable={editable}
-                label="Email"
-                override={fieldOverrides?.email}
-                onStyleChange={(s) => headerFieldStyle("email", s)}
-                inline
-              >
-                <EditableText
+            label="Name"
+            override={fieldOverrides?.fullName}
+            onStyleChange={(s) => headerFieldStyle("fullName", s)}
+          >
+            <EditableText
+              as="h1"
+              editable={editable}
+              value={contact?.fullName || ""}
+              placeholder="Your Name"
+              onCommit={(fullName) => editContact({ fullName })}
+              className="text-headline-xl text-on-surface uppercase tracking-tight"
+              style={fieldCss(neutralFont("fullName"), 32)}
+            />
+          </StyleGroup>
+          <StyleGroup
+            editable={editable}
+            label="Title"
+            override={fieldOverrides?.title}
+            onStyleChange={(s) => headerFieldStyle("title", s)}
+          >
+            <EditableText
+              as="p"
+              editable={editable}
+              value={contact?.title ?? ""}
+              placeholder="Professional title"
+              onCommit={(title) => editContact({ title })}
+              className="text-headline-md mt-xs"
+              style={fieldCss(titleStyle, 18, true)}
+            />
+          </StyleGroup>
+          <div className="flex flex-wrap gap-md mt-sm text-on-surface-variant text-body-sm">
+            {(editable || contact?.email) && (
+              <span className="flex items-center gap-xs">
+                <Icon name="mail" className="!text-sm" />
+                <StyleGroup
                   editable={editable}
-                  value={contact?.email ?? ""}
-                  placeholder="email@example.com"
-                  onCommit={(email) => editContact({ email })}
-                  style={{
-                    color: neutralColor("email"),
-                    fontFamily: neutralFont("email").fontFamily,
-                    fontSize: 13 * neutralFont("email").fontScale,
-                  }}
-                />
-              </StyleGroup>
-            </span>
-          )}
-          {(editable || contact?.phone) && (
-            <span className="flex items-center gap-xs">
-              <Icon name="call" className="!text-sm" />
-              <StyleGroup
-                editable={editable}
-                label="Phone"
-                override={fieldOverrides?.phone}
-                onStyleChange={(s) => headerFieldStyle("phone", s)}
-                inline
-              >
-                <EditableText
+                  label="Email"
+                  override={fieldOverrides?.email}
+                  onStyleChange={(s) => headerFieldStyle("email", s)}
+                  inline
+                >
+                  <EditableText
+                    editable={editable}
+                    value={contact?.email ?? ""}
+                    placeholder="email@example.com"
+                    onCommit={(email) => editContact({ email })}
+                    style={fieldCss(neutralFont("email"), 13)}
+                  />
+                </StyleGroup>
+              </span>
+            )}
+            {(editable || contact?.phone) && (
+              <span className="flex items-center gap-xs">
+                <Icon name="call" className="!text-sm" />
+                <StyleGroup
                   editable={editable}
-                  value={contact?.phone ?? ""}
-                  placeholder="Phone"
-                  onCommit={(phone) => editContact({ phone })}
-                  style={{
-                    color: neutralColor("phone"),
-                    fontFamily: neutralFont("phone").fontFamily,
-                    fontSize: 13 * neutralFont("phone").fontScale,
-                  }}
-                />
-              </StyleGroup>
-            </span>
-          )}
-          {(editable || contact?.location) && (
-            <span className="flex items-center gap-xs">
-              <Icon name="location_on" className="!text-sm" />
-              <StyleGroup
-                editable={editable}
-                label="Location"
-                override={fieldOverrides?.location}
-                onStyleChange={(s) => headerFieldStyle("location", s)}
-                inline
-              >
-                <EditableText
+                  label="Phone"
+                  override={fieldOverrides?.phone}
+                  onStyleChange={(s) => headerFieldStyle("phone", s)}
+                  inline
+                >
+                  <EditableText
+                    editable={editable}
+                    value={contact?.phone ?? ""}
+                    placeholder="Phone"
+                    onCommit={(phone) => editContact({ phone })}
+                    style={fieldCss(neutralFont("phone"), 13)}
+                  />
+                </StyleGroup>
+              </span>
+            )}
+            {(editable || contact?.location) && (
+              <span className="flex items-center gap-xs">
+                <Icon name="location_on" className="!text-sm" />
+                <StyleGroup
                   editable={editable}
-                  value={contact?.location ?? ""}
-                  placeholder="Location"
-                  onCommit={(location) => editContact({ location })}
-                  style={{
-                    color: neutralColor("location"),
-                    fontFamily: neutralFont("location").fontFamily,
-                    fontSize: 13 * neutralFont("location").fontScale,
-                  }}
-                />
-              </StyleGroup>
-            </span>
-          )}
+                  label="Location"
+                  override={fieldOverrides?.location}
+                  onStyleChange={(s) => headerFieldStyle("location", s)}
+                  inline
+                >
+                  <EditableText
+                    editable={editable}
+                    value={contact?.location ?? ""}
+                    placeholder="Location"
+                    onCommit={(location) => editContact({ location })}
+                    style={fieldCss(neutralFont("location"), 13)}
+                  />
+                </StyleGroup>
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

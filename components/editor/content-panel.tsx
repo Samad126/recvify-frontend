@@ -43,7 +43,11 @@ export function ContentPanel({ cv }: { cv: CvDetail }) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-md space-y-md">
-        <PersonalDetailsSection cvId={cv.id} contactInfo={cv.contactInfoJson} />
+        <PersonalDetailsSection
+          cvId={cv.id}
+          contactInfo={cv.contactInfoJson}
+          photoUrl={cv.photoUrl}
+        />
         {sortedSections.map((section) => (
           <SectionAccordion key={section.id} cvId={cv.id} section={section} />
         ))}
