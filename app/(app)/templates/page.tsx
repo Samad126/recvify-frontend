@@ -32,9 +32,9 @@ export default function TemplatesPage() {
 
   const createCvMutation = useMutation({
     mutationFn: (templateId: string) => cvsApi.createCv({ templateId }),
-    onSuccess: async () => {
+    onSuccess: async (cv) => {
       await queryClient.invalidateQueries({ queryKey: ["cvs"] });
-      router.push("/dashboard");
+      router.push(`/cvs/${cv.id}`);
     },
   });
 

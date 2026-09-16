@@ -1,5 +1,5 @@
 import { publicFetch } from "./http";
-import type { Paginated, Template } from "./types";
+import type { Paginated, Template, TemplateDetail } from "./types";
 
 export interface ListTemplatesParams {
   search?: string;
@@ -22,4 +22,8 @@ export function listTemplates(params: ListTemplatesParams = {}) {
   if (params.sort) search.set("sort", params.sort);
   const qs = search.toString();
   return publicFetch<Paginated<Template>>(`/templates${qs ? `?${qs}` : ""}`);
+}
+
+export function getTemplate(templateId: string) {
+  return publicFetch<TemplateDetail>(`/templates/${templateId}`);
 }

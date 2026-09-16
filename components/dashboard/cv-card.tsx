@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Icon } from "@/components/ui/icon";
 import type { CvListItem } from "@/lib/api/types";
 import { formatRelativeTime } from "@/lib/utils/format-relative-time";
@@ -10,7 +11,10 @@ interface CvCardProps {
 
 export function CvCard({ cv, onDelete, isDeleting }: CvCardProps) {
   return (
-    <div className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden group hover:border-primary-container transition-colors shadow-flat-soft flex flex-col h-full">
+    <Link
+      href={`/cvs/${cv.id}`}
+      className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden group hover:border-primary-container transition-colors shadow-flat-soft flex flex-col h-full"
+    >
       <div className="h-40 bg-surface-container-low border-b border-outline-variant relative flex items-center justify-center">
         <Icon name="description" className="text-outline-variant !text-5xl" />
         <div
@@ -38,27 +42,21 @@ export function CvCard({ cv, onDelete, isDeleting }: CvCardProps) {
           <span className="inline-block bg-surface-container text-on-surface-variant text-label-md px-2 py-1 rounded">
             {cv.status}
           </span>
-          <div className="flex gap-sm opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              type="button"
-              disabled
-              title="CV editor is coming soon"
-              className="text-on-surface-variant/50 cursor-not-allowed"
-            >
-              <Icon name="edit" />
-            </button>
-            <button
-              type="button"
-              onClick={() => onDelete(cv)}
-              disabled={isDeleting}
-              title="Delete"
-              className="text-on-surface-variant hover:text-error disabled:opacity-50"
-            >
-              <Icon name="delete" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(cv);
+            }}
+            disabled={isDeleting}
+            title="Delete"
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-error disabled:opacity-50"
+          >
+            <Icon name="delete" />
+          </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

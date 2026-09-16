@@ -75,3 +75,102 @@ export interface Template {
   isAtsFriendly: boolean;
   createdAt: string;
 }
+
+export interface TemplateDetail extends Template {
+  structureJson: {
+    layout: "single-column" | "two-column";
+    sections: { type: string; position: number; required: boolean }[];
+    font: string;
+    accentColor: string;
+  };
+}
+
+export type SectionType =
+  | "SUMMARY"
+  | "EXPERIENCE"
+  | "EDUCATION"
+  | "SKILLS"
+  | "CERTIFICATIONS"
+  | "CUSTOM";
+
+export interface SummaryFields {
+  text: string;
+}
+export interface ExperienceFields {
+  jobTitle: string;
+  company: string;
+  startDate: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  description: string;
+}
+export interface EducationFields {
+  school: string;
+  degree: string;
+  startDate: string;
+  endDate?: string;
+}
+export interface SkillsFields {
+  name: string;
+  level?: "Beginner" | "Intermediate" | "Advanced" | "Expert";
+}
+export interface CertificationFields {
+  name: string;
+  issuer?: string;
+  date?: string;
+}
+export interface CustomFields {
+  title?: string;
+  text: string;
+}
+
+export type EntryFields =
+  | SummaryFields
+  | ExperienceFields
+  | EducationFields
+  | SkillsFields
+  | CertificationFields
+  | CustomFields;
+
+export interface CvEntry<T extends EntryFields = EntryFields> {
+  id: string;
+  fieldsJson: T;
+  sortOrder: number;
+}
+
+export interface CvSection {
+  id: string;
+  sectionType: SectionType;
+  title: string | null;
+  sortOrder: number;
+  entries: CvEntry[];
+}
+
+export interface ContactInfo {
+  fullName: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+}
+
+export interface StyleOverrides {
+  fontFamily?: string;
+  fontSize?: number;
+  accentColor?: string;
+  theme?: "light" | "dark";
+}
+
+export interface CvDetail {
+  id: string;
+  title: string;
+  templateId: string;
+  status: CvStatus;
+  isVariant: boolean;
+  updatedAt: string;
+  createdAt: string;
+  styleOverridesJson: StyleOverrides | null;
+  contactInfoJson: ContactInfo | null;
+  sourceUploadId: string | null;
+  sections: CvSection[];
+}
