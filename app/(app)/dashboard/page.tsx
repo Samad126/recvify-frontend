@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CvCard } from "@/components/dashboard/cv-card";
 import { Button } from "@/components/ui/button";
@@ -58,14 +59,13 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-sm">
-          <Button
-            disabled
-            title="Template selection is coming soon"
-            className="gap-xs"
+          <Link
+            href="/templates"
+            className="inline-flex items-center justify-center gap-sm rounded-lg bg-primary-container px-md py-sm text-label-md text-on-primary hover:bg-primary transition-colors"
           >
             <Icon name="add" />
             New Resume
-          </Button>
+          </Link>
           <Button variant="secondary" onClick={handleLogout}>
             Log out
           </Button>
@@ -99,9 +99,15 @@ export default function DashboardPage() {
           <Icon name="description" className="!text-4xl text-outline-variant" />
           <p className="text-headline-md text-on-surface">No resumes yet</p>
           <p className="text-body-sm text-on-surface-variant max-w-sm">
-            Once template selection and the CV editor are wired up, your first
-            resume will show up here.
+            Pick a template to create your first resume.
           </p>
+          <Link
+            href="/templates"
+            className="mt-sm inline-flex items-center gap-xs rounded-lg bg-primary-container px-md py-sm text-label-md text-on-primary hover:bg-primary transition-colors"
+          >
+            <Icon name="add" />
+            Browse templates
+          </Link>
         </div>
       )}
 
@@ -117,15 +123,13 @@ export default function DashboardPage() {
               }
             />
           ))}
-          <button
-            type="button"
-            disabled
-            title="Template selection is coming soon"
-            className="border border-dashed border-outline-variant rounded-lg flex flex-col items-center justify-center h-[260px] gap-sm text-on-surface-variant/50 cursor-not-allowed"
+          <Link
+            href="/templates"
+            className="border border-dashed border-outline-variant rounded-lg flex flex-col items-center justify-center h-[260px] gap-sm text-on-surface-variant hover:border-primary-container hover:text-primary-container hover:bg-surface-container-low transition-colors"
           >
             <Icon name="add_circle" className="!text-3xl" />
             <span className="text-headline-md">Create New</span>
-          </button>
+          </Link>
         </div>
       )}
     </div>

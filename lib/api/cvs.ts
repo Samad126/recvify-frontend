@@ -12,3 +12,7 @@ export function listCvs(params: { page?: number; limit?: number } = {}) {
 export function deleteCv(cvId: string) {
   return authedFetch<void>(`/cvs/${cvId}`, { method: "DELETE" });
 }
+
+export function createCv(payload: { templateId: string; title?: string }) {
+  return authedFetch<CvListItem>("/cvs", { method: "POST", body: payload });
+}

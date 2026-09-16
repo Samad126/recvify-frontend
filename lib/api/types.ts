@@ -64,3 +64,14 @@ export interface CvListItem {
   isVariant: boolean;
   updatedAt: string;
 }
+
+export interface Template {
+  id: string;
+  name: string;
+  tagline: string;
+  thumbnailUrl: string;
+  industries: string[];
+  styles: string[];
+  isAtsFriendly: boolean;
+  createdAt: string;
+}

@@ -14,7 +14,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "My Resumes", icon: "description", href: "/dashboard" },
-  { label: "Templates", icon: "dashboard_customize" },
+  { label: "Templates", icon: "dashboard_customize", href: "/templates" },
   { label: "AI Credits", icon: "auto_awesome" },
   { label: "Settings", icon: "settings" },
 ];
