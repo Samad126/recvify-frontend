@@ -20,6 +20,13 @@ import { fieldCss, resolveStyle } from "@/lib/utils/style-cascade";
 import { EditableText } from "./editable-text";
 import { ElementStylePopover } from "./element-style-popover";
 
+const SKILL_LEVEL_PCT = {
+  Beginner: 40,
+  Intermediate: 65,
+  Advanced: 85,
+  Expert: 100,
+} as const;
+
 /** Present only in editor mode — omitted (and every text node rendered static) on the public share page. */
 export interface EditHandlers {
   onEditContact?: (patch: Partial<ContactInfo>) => void;
@@ -82,11 +89,13 @@ function SectionBody({
   editable,
   styleLayers,
   handlers,
+  skillsStyle,
 }: {
   section: CvSection;
   editable: boolean;
   styleLayers: (StyleOverrides | null | undefined)[];
   handlers: EditHandlers;
+  skillsStyle?: "chip" | "bar";
 }) {
   const entries = [...section.entries].sort(
     (a, b) => a.sortOrder - b.sortOrder,
@@ -337,6 +346,49 @@ function SectionBody({
     );
   }
 
+  if (section.sectionType === "SKILLS" && skillsStyle === "bar") {
+    return (
+      <div className="space-y-sm">
+        {entries.map((entry) => {
+          const f = entry.fieldsJson as SkillsFields;
+          const fs = entry.styleOverridesJson;
+          const s = fieldStyle(fs, "name");
+          const pct =
+            (f.level &&
+              SKILL_LEVEL_PCT[f.level as keyof typeof SKILL_LEVEL_PCT]) ??
+            70;
+          return (
+            <StyleGroup
+              key={entry.id}
+              editable={editable}
+              label="Skill"
+              override={fs?.name}
+              onStyleChange={(v) => setFieldStyle(entry.id, "name", v)}
+            >
+              <div style={{ fontFamily: s.fontFamily, color: s.color }}>
+                <EditableText
+                  as="p"
+                  editable={editable}
+                  value={f.name}
+                  placeholder="Skill"
+                  onCommit={(name) => editField(entry.id, { name })}
+                  className="mb-1"
+                  style={fieldCss(s, 13)}
+                />
+                <div className="h-1.5 w-full rounded-full bg-current/15 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-current"
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </div>
+            </StyleGroup>
+          );
+        })}
+      </div>
+    );
+  }
+
   if (section.sectionType === "SKILLS") {
     return (
       <div className="flex flex-wrap gap-xs">
@@ -508,6 +560,7 @@ function SectionBlock({
   templateLayer,
   handlers,
   sidebar,
+  skillsStyle,
 }: {
   section: CvSection;
   editable: boolean;
@@ -515,6 +568,7 @@ function SectionBlock({
   templateLayer: StyleOverrides;
   handlers: EditHandlers;
   sidebar?: boolean;
+  skillsStyle?: "chip" | "bar";
 }) {
   const sectionStyle = resolveStyle(
     templateLayer,
@@ -550,6 +604,7 @@ function SectionBlock({
         editable={editable}
         styleLayers={[templateLayer, cvStyle, section.styleOverridesJson]}
         handlers={handlers}
+        skillsStyle={skillsStyle}
       />
     </div>
   );
@@ -613,183 +668,260 @@ export function ResumeDocument({
     resolveStyle(templateLayer, styleOverridesJson, fieldOverrides?.[key]);
 
   const isDark = styleOverridesJson?.theme === "dark";
+  const sidebarSide = template?.structureJson.sidebarSide ?? "right";
+  const sidebarTheme = template?.structureJson.sidebarTheme ?? "light";
+  const bannerHeader = template?.structureJson.headerStyle === "banner";
+  const photoInSidebar =
+    template?.structureJson.photoPosition === "sidebar" && isTwoColumn;
+  const skillsStyle = template?.structureJson.skillsStyle ?? "chip";
+
+  // On a banner header every text node is white regardless of the resolved
+  // accent/neutral color, since it sits on a solid accent-colored band.
+  const hCss = (
+    resolved: ReturnType<typeof resolveStyle>,
+    basePx: number,
+    useAccent = false,
+  ) => {
+    const css = fieldCss(resolved, basePx, useAccent);
+    return bannerHeader ? { ...css, color: "#ffffff" } : css;
+  };
+
+  const photoNode = photoUrl && (
+    // biome-ignore lint/performance/noImgElement: user-uploaded photo, no next/image domain config for it
+    <img
+      src={`${API_BASE_URL}${photoUrl}`}
+      alt=""
+      className={`object-cover shrink-0 ${bannerHeader ? "size-20 rounded-xl" : "size-21 rounded-full"}`}
+    />
+  );
+
+  const headerNode = (
+    <div className="flex-1 min-w-0">
+      <StyleGroup
+        editable={editable}
+        label="Name"
+        override={fieldOverrides?.fullName}
+        onStyleChange={(s) => headerFieldStyle("fullName", s)}
+      >
+        <EditableText
+          as="h1"
+          editable={editable}
+          value={contact?.fullName || ""}
+          placeholder="Your Name"
+          onCommit={(fullName) => editContact({ fullName })}
+          className={`text-headline-xl uppercase tracking-tight ${bannerHeader ? "" : "text-on-surface"}`}
+          style={hCss(neutralFont("fullName"), 32)}
+        />
+      </StyleGroup>
+      <StyleGroup
+        editable={editable}
+        label="Title"
+        override={fieldOverrides?.title}
+        onStyleChange={(s) => headerFieldStyle("title", s)}
+      >
+        <EditableText
+          as="p"
+          editable={editable}
+          value={contact?.title ?? ""}
+          placeholder="Professional title"
+          onCommit={(title) => editContact({ title })}
+          className="text-headline-md mt-xs"
+          style={hCss(titleStyle, 18, true)}
+        />
+      </StyleGroup>
+      <div
+        className={`flex flex-wrap gap-md mt-sm text-body-sm ${bannerHeader ? "text-white/90" : "text-on-surface-variant"}`}
+      >
+        {(editable || contact?.email) && (
+          <span className="flex items-center gap-xs">
+            <Icon name="mail" className="!text-sm" />
+            <StyleGroup
+              editable={editable}
+              label="Email"
+              override={fieldOverrides?.email}
+              onStyleChange={(s) => headerFieldStyle("email", s)}
+              inline
+            >
+              <EditableText
+                editable={editable}
+                value={contact?.email ?? ""}
+                placeholder="email@example.com"
+                onCommit={(email) => editContact({ email })}
+                style={hCss(neutralFont("email"), 13)}
+              />
+            </StyleGroup>
+          </span>
+        )}
+        {(editable || contact?.phone) && (
+          <span className="flex items-center gap-xs">
+            <Icon name="call" className="!text-sm" />
+            <StyleGroup
+              editable={editable}
+              label="Phone"
+              override={fieldOverrides?.phone}
+              onStyleChange={(s) => headerFieldStyle("phone", s)}
+              inline
+            >
+              <EditableText
+                editable={editable}
+                value={contact?.phone ?? ""}
+                placeholder="Phone"
+                onCommit={(phone) => editContact({ phone })}
+                style={hCss(neutralFont("phone"), 13)}
+              />
+            </StyleGroup>
+          </span>
+        )}
+        {(editable || contact?.location) && (
+          <span className="flex items-center gap-xs">
+            <Icon name="location_on" className="!text-sm" />
+            <StyleGroup
+              editable={editable}
+              label="Location"
+              override={fieldOverrides?.location}
+              onStyleChange={(s) => headerFieldStyle("location", s)}
+              inline
+            >
+              <EditableText
+                editable={editable}
+                value={contact?.location ?? ""}
+                placeholder="Location"
+                onCommit={(location) => editContact({ location })}
+                style={hCss(neutralFont("location"), 13)}
+              />
+            </StyleGroup>
+          </span>
+        )}
+      </div>
+    </div>
+  );
+
+  const header = bannerHeader ? (
+    <div
+      className="-mx-xl -mt-xl mb-lg px-xl py-lg flex items-center gap-md"
+      style={{ backgroundColor: bodyStyle.color }}
+    >
+      {!photoInSidebar && photoNode}
+      {headerNode}
+    </div>
+  ) : (
+    <div className="border-b-2 border-on-surface pb-md mb-lg flex items-center gap-md">
+      {!photoInSidebar && photoNode}
+      {headerNode}
+    </div>
+  );
+
+  const emptyState = sortedSections.length === 0 && (
+    <p className="text-body-sm text-on-surface-variant">
+      Add sections on the left to see your resume take shape here.
+    </p>
+  );
+
+  const renderSection = (section: CvSection, sidebar?: boolean) => (
+    <SectionBlock
+      key={section.id}
+      section={section}
+      editable={editable}
+      cvStyle={styleOverridesJson}
+      templateLayer={templateLayer}
+      handlers={handlers}
+      sidebar={sidebar}
+      skillsStyle={skillsStyle}
+    />
+  );
+
+  const outerStyle: CSSProperties = {
+    fontSize: bodyStyle.fontSize ? `${bodyStyle.fontSize}px` : undefined,
+    fontFamily: bodyStyle.fontFamily,
+    // Tailwind v4 @theme tokens are real custom properties — overriding them
+    // here cascades a dark palette to every text-on-surface/etc. utility below,
+    // instead of the previous no-op "theme" toggle that only the PDF export obeyed.
+    ...(isDark
+      ? ({
+          "--color-surface-container-lowest": "#1a1a1a",
+          "--color-surface-container": "#2a2a2a",
+          "--color-on-surface": "#e5e5e5",
+          "--color-on-surface-variant": "#b3b3b3",
+          "--color-outline-variant": "#444444",
+          "--color-outline": "#666666",
+        } as CSSProperties)
+      : undefined),
+  };
+
+  // A dark sidebar is a full-height panel that runs alongside the header and
+  // main column, unlike the light/none tint which sits in a box below a
+  // full-width header (matching how sidebar resumes with a dark accent panel
+  // are typically laid out, vs. a lighter two-column body split).
+  if (isTwoColumn && sidebarTheme === "dark") {
+    const sidebarPanel = (
+      <div
+        className="w-[220px] shrink-0 rounded-lg p-md space-y-lg"
+        style={
+          {
+            backgroundColor: bodyStyle.color,
+            "--color-on-surface": "#ffffff",
+            "--color-on-surface-variant": "rgba(255,255,255,0.75)",
+            "--color-outline-variant": "rgba(255,255,255,0.35)",
+            "--color-surface-container": "rgba(255,255,255,0.14)",
+          } as CSSProperties
+        }
+      >
+        {photoInSidebar && photoNode && (
+          <div className="flex justify-center">{photoNode}</div>
+        )}
+        {sidebarSections.map((s) => renderSection(s, true))}
+      </div>
+    );
+    return (
+      <div
+        className="bg-surface-container-lowest w-[794px] min-h-[1123px] shadow-flat-soft ring-1 ring-outline-variant/50 p-xl flex flex-col shrink-0"
+        style={outerStyle}
+      >
+        <div className="flex-1 flex gap-lg items-stretch">
+          {sidebarSide === "left" && sidebarPanel}
+          <div className="flex-[2] min-w-0 flex flex-col">
+            {header}
+            {emptyState}
+            <div className="space-y-lg">
+              {mainSections.map((s) => renderSection(s))}
+            </div>
+          </div>
+          {sidebarSide === "right" && sidebarPanel}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
       className="bg-surface-container-lowest w-[794px] min-h-[1123px] shadow-flat-soft ring-1 ring-outline-variant/50 p-xl flex flex-col shrink-0"
-      style={{
-        fontSize: bodyStyle.fontSize ? `${bodyStyle.fontSize}px` : undefined,
-        fontFamily: bodyStyle.fontFamily,
-        // Tailwind v4 @theme tokens are real custom properties — overriding them
-        // here cascades a dark palette to every text-on-surface/etc. utility below,
-        // instead of the previous no-op "theme" toggle that only the PDF export obeyed.
-        ...(isDark
-          ? ({
-              "--color-surface-container-lowest": "#1a1a1a",
-              "--color-surface-container": "#2a2a2a",
-              "--color-on-surface": "#e5e5e5",
-              "--color-on-surface-variant": "#b3b3b3",
-              "--color-outline-variant": "#444444",
-              "--color-outline": "#666666",
-            } as CSSProperties)
-          : undefined),
-      }}
+      style={outerStyle}
     >
-      <div className="border-b-2 border-on-surface pb-md mb-lg flex items-center gap-md">
-        {photoUrl && (
-          // biome-ignore lint/performance/noImgElement: user-uploaded photo, no next/image domain config for it
-          <img
-            src={`${API_BASE_URL}${photoUrl}`}
-            alt=""
-            className="size-[84px] rounded-full object-cover shrink-0"
-          />
-        )}
-        <div className="flex-1 min-w-0">
-          <StyleGroup
-            editable={editable}
-            label="Name"
-            override={fieldOverrides?.fullName}
-            onStyleChange={(s) => headerFieldStyle("fullName", s)}
-          >
-            <EditableText
-              as="h1"
-              editable={editable}
-              value={contact?.fullName || ""}
-              placeholder="Your Name"
-              onCommit={(fullName) => editContact({ fullName })}
-              className="text-headline-xl text-on-surface uppercase tracking-tight"
-              style={fieldCss(neutralFont("fullName"), 32)}
-            />
-          </StyleGroup>
-          <StyleGroup
-            editable={editable}
-            label="Title"
-            override={fieldOverrides?.title}
-            onStyleChange={(s) => headerFieldStyle("title", s)}
-          >
-            <EditableText
-              as="p"
-              editable={editable}
-              value={contact?.title ?? ""}
-              placeholder="Professional title"
-              onCommit={(title) => editContact({ title })}
-              className="text-headline-md mt-xs"
-              style={fieldCss(titleStyle, 18, true)}
-            />
-          </StyleGroup>
-          <div className="flex flex-wrap gap-md mt-sm text-on-surface-variant text-body-sm">
-            {(editable || contact?.email) && (
-              <span className="flex items-center gap-xs">
-                <Icon name="mail" className="!text-sm" />
-                <StyleGroup
-                  editable={editable}
-                  label="Email"
-                  override={fieldOverrides?.email}
-                  onStyleChange={(s) => headerFieldStyle("email", s)}
-                  inline
-                >
-                  <EditableText
-                    editable={editable}
-                    value={contact?.email ?? ""}
-                    placeholder="email@example.com"
-                    onCommit={(email) => editContact({ email })}
-                    style={fieldCss(neutralFont("email"), 13)}
-                  />
-                </StyleGroup>
-              </span>
-            )}
-            {(editable || contact?.phone) && (
-              <span className="flex items-center gap-xs">
-                <Icon name="call" className="!text-sm" />
-                <StyleGroup
-                  editable={editable}
-                  label="Phone"
-                  override={fieldOverrides?.phone}
-                  onStyleChange={(s) => headerFieldStyle("phone", s)}
-                  inline
-                >
-                  <EditableText
-                    editable={editable}
-                    value={contact?.phone ?? ""}
-                    placeholder="Phone"
-                    onCommit={(phone) => editContact({ phone })}
-                    style={fieldCss(neutralFont("phone"), 13)}
-                  />
-                </StyleGroup>
-              </span>
-            )}
-            {(editable || contact?.location) && (
-              <span className="flex items-center gap-xs">
-                <Icon name="location_on" className="!text-sm" />
-                <StyleGroup
-                  editable={editable}
-                  label="Location"
-                  override={fieldOverrides?.location}
-                  onStyleChange={(s) => headerFieldStyle("location", s)}
-                  inline
-                >
-                  <EditableText
-                    editable={editable}
-                    value={contact?.location ?? ""}
-                    placeholder="Location"
-                    onCommit={(location) => editContact({ location })}
-                    style={fieldCss(neutralFont("location"), 13)}
-                  />
-                </StyleGroup>
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {sortedSections.length === 0 && (
-        <p className="text-body-sm text-on-surface-variant">
-          Add sections on the left to see your resume take shape here.
-        </p>
-      )}
+      {header}
+      {emptyState}
 
       {isTwoColumn ? (
         <div className="flex-1 flex gap-lg items-start">
-          <div className="flex-[2] space-y-lg min-w-0">
-            {mainSections.map((section) => (
-              <SectionBlock
-                key={section.id}
-                section={section}
-                editable={editable}
-                cvStyle={styleOverridesJson}
-                templateLayer={templateLayer}
-                handlers={handlers}
-              />
-            ))}
+          <div
+            className={`space-y-lg min-w-0 ${sidebarTheme === "none" ? "flex-1" : "flex-[2]"}`}
+          >
+            {mainSections.map((s) => renderSection(s))}
           </div>
           {sidebarSections.length > 0 && (
-            <div className="flex-1 space-y-lg min-w-0 bg-surface-container/60 rounded-lg p-md -mt-1">
-              {sidebarSections.map((section) => (
-                <SectionBlock
-                  key={section.id}
-                  section={section}
-                  editable={editable}
-                  cvStyle={styleOverridesJson}
-                  templateLayer={templateLayer}
-                  handlers={handlers}
-                  sidebar
-                />
-              ))}
+            <div
+              className={`flex-1 space-y-lg min-w-0 ${
+                sidebarTheme === "none"
+                  ? ""
+                  : "bg-surface-container/60 rounded-lg p-md -mt-1"
+              }`}
+            >
+              {sidebarSections.map((s) => renderSection(s, true))}
             </div>
           )}
         </div>
       ) : (
         <div className="space-y-lg">
-          {sortedSections.map((section) => (
-            <SectionBlock
-              key={section.id}
-              section={section}
-              editable={editable}
-              cvStyle={styleOverridesJson}
-              templateLayer={templateLayer}
-              handlers={handlers}
-            />
-          ))}
+          {sortedSections.map((s) => renderSection(s))}
         </div>
       )}
     </div>

@@ -82,6 +82,16 @@ export interface TemplateDetail extends Template {
     sections: { type: string; position: string | number; required: boolean }[];
     font: string;
     accentColor: string;
+    /** Which side the sidebar renders on, for two-column layouts. Defaults to "right". */
+    sidebarSide?: "left" | "right";
+    /** "dark" renders a full-height accent-colored panel with white text; "none" renders equal, untinted columns. Defaults to "light" (a tinted box below the header). */
+    sidebarTheme?: "light" | "dark" | "none";
+    /** "banner" renders a full-width accent-colored header band (white text, photo inline) instead of the plain text header. Defaults to "plain". */
+    headerStyle?: "plain" | "banner";
+    /** Where the profile photo renders. Defaults to "header". */
+    photoPosition?: "header" | "sidebar";
+    /** "bar" renders SKILLS entries as labeled proficiency bars instead of chips. Defaults to "chip". */
+    skillsStyle?: "chip" | "bar";
   };
 }
 

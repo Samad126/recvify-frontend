@@ -30,6 +30,11 @@ export interface ResolvedStyle {
  * Merges style layers from lowest to highest priority (e.g. template default,
  * then CV-level, then section-level, then entry-level) so a more specific
  * override always wins per-field, without clobbering fields it doesn't set.
+ *
+ * By convention the first layer is always the per-template baseline (e.g.
+ * `templateLayer`) — it feeds `color` like everything else, but never counts
+ * toward `explicitColor`, since it's a default the template picked, not
+ * something the user actually chose for this field.
  */
 export function resolveStyle(
   ...layers: (StyleOverrides | null | undefined)[]
@@ -43,11 +48,11 @@ export function resolveStyle(
   let italic: boolean | undefined;
   let underline: boolean | undefined;
 
-  for (const layer of layers) {
-    if (!layer) continue;
+  layers.forEach((layer, i) => {
+    if (!layer) return;
     if (layer.accentColor) {
       color = layer.accentColor;
-      explicitColor = layer.accentColor;
+      if (i > 0) explicitColor = layer.accentColor;
     }
     if (layer.fontFamily) fontFamily = layer.fontFamily;
     if (layer.fontSize) fontSize = layer.fontSize;
@@ -55,7 +60,7 @@ export function resolveStyle(
     if (layer.bold !== undefined) bold = layer.bold;
     if (layer.italic !== undefined) italic = layer.italic;
     if (layer.underline !== undefined) underline = layer.underline;
-  }
+  });
 
   return {
     color,
