@@ -162,6 +162,7 @@ export function ResumeDocument({
 }: ResumeDocumentData) {
   const accentColor = styleOverridesJson?.accentColor || "#0F766E";
   const fontSize = styleOverridesJson?.fontSize;
+  const fontFamily = styleOverridesJson?.fontFamily;
   const contact = contactInfoJson;
   const sortedSections = [...sections].sort(
     (a, b) => a.sortOrder - b.sortOrder,
@@ -170,7 +171,10 @@ export function ResumeDocument({
   return (
     <div
       className="bg-surface-container-lowest w-[794px] min-h-[1123px] shadow-flat-soft ring-1 ring-outline-variant/50 p-xl flex flex-col shrink-0"
-      style={fontSize ? { fontSize: `${fontSize}px` } : undefined}
+      style={{
+        fontSize: fontSize ? `${fontSize}px` : undefined,
+        fontFamily,
+      }}
     >
       <div className="border-b-2 border-on-surface pb-md mb-lg">
         <h1 className="text-headline-xl text-on-surface uppercase tracking-tight">
