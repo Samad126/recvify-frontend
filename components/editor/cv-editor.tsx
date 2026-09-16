@@ -6,11 +6,13 @@ import { useState } from "react";
 import * as cvsApi from "@/lib/api/cvs";
 import { ContentPanel } from "./content-panel";
 import { EditorTopBar } from "./editor-top-bar";
+import { ExportModal } from "./export-modal";
 import { ImproveWithAiPanel } from "./improve-with-ai-panel";
 import { PreviewPanel } from "./preview-panel";
 
 export function CvEditor({ cvId }: { cvId: string }) {
   const [improveOpen, setImproveOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
 
   const {
     data: cv,
@@ -48,7 +50,11 @@ export function CvEditor({ cvId }: { cvId: string }) {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-surface-container-lowest">
-      <EditorTopBar cv={cv} onImprove={() => setImproveOpen(true)} />
+      <EditorTopBar
+        cv={cv}
+        onImprove={() => setImproveOpen(true)}
+        onExport={() => setExportOpen(true)}
+      />
       <main className="flex-1 flex overflow-hidden relative">
         <ContentPanel cv={cv} />
         <PreviewPanel cv={cv} />
@@ -59,6 +65,9 @@ export function CvEditor({ cvId }: { cvId: string }) {
           />
         )}
       </main>
+      {exportOpen && (
+        <ExportModal cv={cv} onClose={() => setExportOpen(false)} />
+      )}
     </div>
   );
 }

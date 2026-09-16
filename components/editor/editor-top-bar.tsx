@@ -13,9 +13,11 @@ import { formatRelativeTime } from "@/lib/utils/format-relative-time";
 export function EditorTopBar({
   cv,
   onImprove,
+  onExport,
 }: {
   cv: CvDetail;
   onImprove: () => void;
+  onExport: () => void;
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -106,6 +108,16 @@ export function EditorTopBar({
           </button>
           {menuOpen && (
             <div className="absolute right-0 top-full mt-xs w-48 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-flat-soft py-xs z-50">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onExport();
+                }}
+                className="w-full text-left px-md py-sm text-body-sm text-on-surface hover:bg-surface-container-low"
+              >
+                Export
+              </button>
               <button
                 type="button"
                 onClick={() => {

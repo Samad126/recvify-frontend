@@ -234,3 +234,21 @@ export interface JobDescriptionAnalysis {
   createdAt: string;
   aiSuggestions: AiSuggestion[];
 }
+
+export type ExportFormat = "PDF" | "DOCX" | "LINK";
+
+export interface CvExport {
+  id: string;
+  format: ExportFormat;
+  shareSlug: string | null;
+  downloadUrl: string | null;
+  createdAt: string;
+}
+
+export interface PublicCv {
+  title: string;
+  contactInfoJson: ContactInfo | null;
+  styleOverridesJson: StyleOverrides | null;
+  template: TemplateDetail;
+  sections: CvSection[];
+}
