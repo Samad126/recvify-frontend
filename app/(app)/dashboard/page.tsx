@@ -60,7 +60,7 @@ export default function DashboardPage() {
         </div>
         <div className="flex items-center gap-sm">
           <Link
-            href="/templates"
+            href="/new"
             className="inline-flex items-center justify-center gap-sm rounded-lg bg-primary-container px-md py-sm text-label-md text-on-primary hover:bg-primary transition-colors"
           >
             <Icon name="add" />
@@ -102,11 +102,11 @@ export default function DashboardPage() {
             Pick a template to create your first resume.
           </p>
           <Link
-            href="/templates"
+            href="/new"
             className="mt-sm inline-flex items-center gap-xs rounded-lg bg-primary-container px-md py-sm text-label-md text-on-primary hover:bg-primary transition-colors"
           >
             <Icon name="add" />
-            Browse templates
+            Get started
           </Link>
         </div>
       )}
@@ -124,7 +124,7 @@ export default function DashboardPage() {
             />
           ))}
           <Link
-            href="/templates"
+            href="/new"
             className="border border-dashed border-outline-variant rounded-lg flex flex-col items-center justify-center h-[260px] gap-sm text-on-surface-variant hover:border-primary-container hover:text-primary-container hover:bg-surface-container-low transition-colors"
           >
             <Icon name="add_circle" className="!text-3xl" />

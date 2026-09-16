@@ -39,20 +39,30 @@ export interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
 }
 
+function buildBody(body: unknown): {
+  body?: BodyInit;
+  contentTypeHeader?: Record<string, string>;
+} {
+  if (body === undefined) return {};
+  if (body instanceof FormData) return { body };
+  return {
+    body: JSON.stringify(body),
+    contentTypeHeader: { "Content-Type": "application/json" },
+  };
+}
+
 /** Public endpoints: no Authorization header, but cookies are always sent for the refresh flow. */
 export async function publicFetch<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { body, headers, ...rest } = options;
+  const { body: rawBody, headers, ...rest } = options;
+  const { body, contentTypeHeader } = buildBody(rawBody);
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...rest,
     credentials: "include",
-    headers: {
-      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-      ...headers,
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    headers: { ...contentTypeHeader, ...headers },
+    body,
   });
   return parseResponse<T>(res);
 }
@@ -86,18 +96,19 @@ export async function authedFetch<T>(
   path: string,
   options: RequestOptions = {},
 ): Promise<T> {
-  const { body, headers, ...rest } = options;
+  const { body: rawBody, headers, ...rest } = options;
+  const { body, contentTypeHeader } = buildBody(rawBody);
 
   const doRequest = async (token: string | null) => {
     const res = await fetch(`${API_BASE_URL}${path}`, {
       ...rest,
       credentials: "include",
       headers: {
-        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...contentTypeHeader,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body,
     });
     return res;
   };

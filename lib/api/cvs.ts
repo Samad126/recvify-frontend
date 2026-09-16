@@ -1,6 +1,7 @@
 import { authedFetch } from "./http";
 import type {
   ContactInfo,
+  CreateCvFromUploadPayload,
   CvDetail,
   CvListItem,
   CvSection,
@@ -28,6 +29,13 @@ export function deleteCv(cvId: string) {
 
 export function createCv(payload: { templateId: string; title?: string }) {
   return authedFetch<CvListItem>("/cvs", { method: "POST", body: payload });
+}
+
+export function createCvFromUpload(payload: CreateCvFromUploadPayload) {
+  return authedFetch<CvDetail>("/cvs/from-upload", {
+    method: "POST",
+    body: payload,
+  });
 }
 
 export function updateCv(

@@ -174,3 +174,32 @@ export interface CvDetail {
   sourceUploadId: string | null;
   sections: CvSection[];
 }
+
+export type ParsedStatus = "PENDING" | "PARSED" | "FAILED";
+
+/** Shaped to mirror the POST /cvs/from-upload payload, minus templateId/title. */
+export interface UploadParsedData {
+  contactInfo?: ContactInfo;
+  summary?: string;
+  experience?: ExperienceFields[];
+  education?: EducationFields[];
+  skills?: string[];
+}
+
+export interface Upload {
+  id: string;
+  parsedStatus: ParsedStatus;
+  parsedData: UploadParsedData | null;
+  createdAt: string;
+}
+
+export interface CreateCvFromUploadPayload {
+  uploadId: string;
+  templateId: string;
+  title?: string;
+  contactInfo: ContactInfo;
+  summary?: string;
+  experience?: ExperienceFields[];
+  education?: EducationFields[];
+  skills?: string[];
+}
