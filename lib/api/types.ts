@@ -46,3 +46,21 @@ export interface LoginPayload {
   email: string;
   password: string;
 }
+
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export type CvStatus = "DRAFT" | "COMPLETE" | string;
+
+export interface CvListItem {
+  id: string;
+  title: string;
+  templateId: string;
+  status: CvStatus;
+  isVariant: boolean;
+  updatedAt: string;
+}

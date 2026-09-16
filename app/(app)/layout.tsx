@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { AppShell } from "@/components/app/app-shell";
 import { useAuthStore } from "@/lib/store/auth-store";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -23,5 +24,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return <>{children}</>;
+  return <AppShell>{children}</AppShell>;
 }
