@@ -1,24 +1,34 @@
 import type { EntryFields, SectionType } from "@/lib/api/types";
 
+/**
+ * Backend `@IsNotEmpty()` rejects empty strings on entry creation (see
+ * section-fields.dto.ts), so required fields here need placeholder text, not
+ * "" — the user overwrites it via the autosaving field inputs right after.
+ */
 export function getDefaultEntryFields(sectionType: SectionType): EntryFields {
   switch (sectionType) {
     case "SUMMARY":
-      return { text: "" };
+      return { text: "Write a short professional summary." };
     case "EXPERIENCE":
       return {
-        jobTitle: "",
-        company: "",
-        startDate: "",
+        jobTitle: "Job Title",
+        company: "Company Name",
+        startDate: "Present",
         endDate: "",
-        description: "",
+        description: "Describe your responsibilities and achievements.",
       };
     case "EDUCATION":
-      return { school: "", degree: "", startDate: "", endDate: "" };
+      return {
+        school: "School Name",
+        degree: "Degree",
+        startDate: "Present",
+        endDate: "",
+      };
     case "SKILLS":
-      return { name: "" };
+      return { name: "New Skill" };
     case "CERTIFICATIONS":
-      return { name: "" };
+      return { name: "New Certification" };
     default:
-      return { text: "" };
+      return { text: "New entry" };
   }
 }

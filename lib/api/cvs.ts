@@ -66,7 +66,7 @@ export function createSection(
 export function updateSection(
   cvId: string,
   sectionId: string,
-  payload: { title?: string },
+  payload: { title: string },
 ) {
   return authedFetch<CvSection>(`/cvs/${cvId}/sections/${sectionId}`, {
     method: "PATCH",

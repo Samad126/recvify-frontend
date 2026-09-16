@@ -177,9 +177,9 @@ export interface CvDetail {
 
 export type ParsedStatus = "PENDING" | "PARSED" | "FAILED";
 
-/** Shaped to mirror the POST /cvs/from-upload payload, minus templateId/title. */
+/** Mirrors the backend's ParsedResumeData shape (common/gemini/resume-schema.ts). */
 export interface UploadParsedData {
-  contactInfo?: ContactInfo;
+  personal?: ContactInfo;
   summary?: string;
   experience?: ExperienceFields[];
   education?: EducationFields[];

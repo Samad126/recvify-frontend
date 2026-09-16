@@ -42,7 +42,7 @@ export default function UploadCvPage() {
       setUploadId(result.id);
       if (result.parsedStatus === "PARSED" && result.parsedData) {
         setReview({
-          contactInfo: result.parsedData.contactInfo ?? { fullName: "" },
+          contactInfo: result.parsedData.personal ?? { fullName: "" },
           summary: result.parsedData.summary ?? "",
           experience: result.parsedData.experience ?? [],
           education: result.parsedData.education ?? [],
