@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
@@ -79,15 +80,13 @@ export function EditorTopBar({
       </div>
 
       <div className="flex items-center gap-md">
-        <button
-          type="button"
-          disabled
-          title="Coming soon"
-          className="h-10 px-md flex items-center gap-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface-variant/50 cursor-not-allowed text-label-md"
+        <Link
+          href={`/cvs/${cv.id}/tailor`}
+          className="h-10 px-md flex items-center gap-sm rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors text-label-md"
         >
           <Icon name="track_changes" />
           Tailor to Job
-        </button>
+        </Link>
         <button
           type="button"
           onClick={onImprove}

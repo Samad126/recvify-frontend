@@ -3,10 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Icon } from "@/components/ui/icon";
-import { Textarea } from "@/components/ui/textarea";
 import * as aiSuggestionsApi from "@/lib/api/ai-suggestions";
 import type { AiSuggestion, SuggestionScope } from "@/lib/api/types";
-import { cn } from "@/lib/utils/cn";
+import { ApplySuggestionsFooter } from "./apply-suggestions-footer";
+import { SuggestionCard } from "./suggestion-card";
 
 const SCOPES: { value: SuggestionScope; label: string }[] = [
   { value: "WHOLE_CV", label: "Whole CV" },
@@ -25,8 +25,6 @@ export function ImproveWithAiPanel({
   const [pendingScope, setPendingScope] = useState<SuggestionScope | null>(
     null,
   );
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
 
   const suggestionsQuery = useQuery({
     queryKey: ["ai-suggestions", cvId],
@@ -73,14 +71,6 @@ export function ImproveWithAiPanel({
   const acceptedIds = suggestions
     .filter((s) => s.status === "ACCEPTED" || s.status === "EDITED")
     .map((s) => s.id);
-  const progressPct = suggestions.length
-    ? Math.round((reviewedCount / suggestions.length) * 100)
-    : 0;
-
-  const startEdit = (s: AiSuggestion) => {
-    setEditingId(s.id);
-    setEditValue(s.suggestedText);
-  };
 
   return (
     <aside className="absolute top-0 right-0 h-full w-full md:w-[480px] bg-surface-container-lowest border-l border-outline-variant shadow-flat-soft flex flex-col z-30">
@@ -139,152 +129,33 @@ export function ImproveWithAiPanel({
         )}
 
         {suggestions.map((s) => (
-          <div
+          <SuggestionCard
             key={s.id}
-            className={cn(
-              "bg-surface-container-lowest border rounded-lg p-md transition-colors relative",
-              s.status === "ACCEPTED" || s.status === "EDITED"
-                ? "border-2 border-primary-container/30"
-                : "border-outline-variant hover:border-outline",
-            )}
-          >
-            {(s.status === "ACCEPTED" || s.status === "EDITED") && (
-              <Icon
-                name="check_circle"
-                filled
-                className="absolute top-sm right-sm text-primary-container !text-lg"
-              />
-            )}
-            <div className="flex justify-between items-start mb-sm pr-lg gap-sm">
-              <span className="text-label-md text-primary-container bg-primary-fixed-dim/20 px-xs py-0.5 rounded">
-                {s.label}
-              </span>
-              {s.status === "REJECTED" && (
-                <span className="text-body-sm text-on-surface-variant">
-                  Rejected
-                </span>
-              )}
-            </div>
-
-            {editingId === s.id ? (
-              <div className="mb-md space-y-sm">
-                <Textarea
-                  rows={4}
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                />
-                <div className="flex gap-sm justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setEditingId(null)}
-                    className="px-sm py-xs border border-outline-variant text-on-surface-variant rounded hover:bg-surface-container-low text-label-md transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      updateStatus.mutate({
-                        id: s.id,
-                        status: "EDITED",
-                        suggestedText: editValue,
-                      });
-                      setEditingId(null);
-                    }}
-                    className="px-sm py-xs bg-primary-container text-on-primary rounded text-label-md transition-colors"
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div
-                className={cn(
-                  "bg-surface-container-low p-sm rounded border border-outline-variant mb-md text-body-sm leading-relaxed",
-                  s.status === "REJECTED" && "opacity-50",
-                )}
-              >
-                <p className="line-through text-error mb-xs">
-                  {s.originalText}
-                </p>
-                <p className="text-on-surface">{s.suggestedText}</p>
-              </div>
-            )}
-
-            {editingId !== s.id && (
-              <div className="flex gap-sm justify-end">
-                {s.status === "PENDING" && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateStatus.mutate({ id: s.id, status: "REJECTED" })
-                      }
-                      className="px-sm py-xs border border-outline-variant text-on-surface-variant rounded hover:bg-surface-container-low text-label-md transition-colors flex items-center gap-xs"
-                    >
-                      <Icon name="close" className="!text-sm" /> Reject
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => startEdit(s)}
-                      className="px-sm py-xs border border-outline-variant text-on-surface-variant rounded hover:bg-surface-container-low text-label-md transition-colors flex items-center gap-xs"
-                    >
-                      <Icon name="edit" className="!text-sm" /> Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        updateStatus.mutate({ id: s.id, status: "ACCEPTED" })
-                      }
-                      className="px-sm py-xs bg-primary-container text-on-primary rounded text-label-md transition-colors flex items-center gap-xs"
-                    >
-                      <Icon name="check" className="!text-sm" /> Accept
-                    </button>
-                  </>
-                )}
-                {s.status !== "PENDING" && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateStatus.mutate({ id: s.id, status: "PENDING" })
-                    }
-                    className="px-sm py-xs text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded text-label-md transition-colors flex items-center gap-xs"
-                  >
-                    <Icon name="undo" className="!text-sm" /> Undo
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+            suggestion={s}
+            onAccept={() =>
+              updateStatus.mutate({ id: s.id, status: "ACCEPTED" })
+            }
+            onReject={() =>
+              updateStatus.mutate({ id: s.id, status: "REJECTED" })
+            }
+            onUndo={() => updateStatus.mutate({ id: s.id, status: "PENDING" })}
+            onEdit={(suggestedText) =>
+              updateStatus.mutate({ id: s.id, status: "EDITED", suggestedText })
+            }
+          />
         ))}
       </div>
 
       {suggestions.length > 0 && (
         <div className="p-md border-t border-outline-variant bg-surface-container-lowest shrink-0">
-          <div className="flex items-center justify-between mb-sm">
-            <span className="text-body-sm text-on-surface-variant">
-              {reviewedCount} of {suggestions.length} suggestions reviewed
-            </span>
-            <span className="text-label-md text-primary">{progressPct}%</span>
-          </div>
-          <div className="w-full bg-surface-container-highest rounded-full h-2 mb-md overflow-hidden">
-            <div
-              className="bg-primary-container h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progressPct}%` }}
-            />
-          </div>
-          <button
-            type="button"
-            disabled={acceptedIds.length === 0 || apply.isPending}
-            onClick={() => apply.mutate(acceptedIds)}
-            className="w-full py-sm bg-primary-container text-on-primary rounded-lg text-label-md font-bold transition-colors shadow-flat-soft disabled:opacity-50 disabled:pointer-events-none"
-          >
-            {apply.isSuccess
-              ? "Applied ✓"
-              : apply.isPending
-                ? "Applying…"
-                : `Apply Accepted Changes (${acceptedIds.length})`}
-          </button>
+          <ApplySuggestionsFooter
+            reviewedCount={reviewedCount}
+            totalCount={suggestions.length}
+            acceptedCount={acceptedIds.length}
+            isApplying={apply.isPending}
+            isApplied={apply.isSuccess}
+            onApply={() => apply.mutate(acceptedIds)}
+          />
         </div>
       )}
     </aside>
