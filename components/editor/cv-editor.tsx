@@ -2,12 +2,16 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState } from "react";
 import * as cvsApi from "@/lib/api/cvs";
 import { ContentPanel } from "./content-panel";
 import { EditorTopBar } from "./editor-top-bar";
+import { ImproveWithAiPanel } from "./improve-with-ai-panel";
 import { PreviewPanel } from "./preview-panel";
 
 export function CvEditor({ cvId }: { cvId: string }) {
+  const [improveOpen, setImproveOpen] = useState(false);
+
   const {
     data: cv,
     isPending,
@@ -44,10 +48,16 @@ export function CvEditor({ cvId }: { cvId: string }) {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-surface-container-lowest">
-      <EditorTopBar cv={cv} />
-      <main className="flex-1 flex overflow-hidden">
+      <EditorTopBar cv={cv} onImprove={() => setImproveOpen(true)} />
+      <main className="flex-1 flex overflow-hidden relative">
         <ContentPanel cv={cv} />
         <PreviewPanel cv={cv} />
+        {improveOpen && (
+          <ImproveWithAiPanel
+            cvId={cv.id}
+            onClose={() => setImproveOpen(false)}
+          />
+        )}
       </main>
     </div>
   );

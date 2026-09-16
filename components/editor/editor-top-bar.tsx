@@ -9,7 +9,13 @@ import type { CvDetail } from "@/lib/api/types";
 import { useDebouncedCallback } from "@/lib/hooks/use-debounced-callback";
 import { formatRelativeTime } from "@/lib/utils/format-relative-time";
 
-export function EditorTopBar({ cv }: { cv: CvDetail }) {
+export function EditorTopBar({
+  cv,
+  onImprove,
+}: {
+  cv: CvDetail;
+  onImprove: () => void;
+}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [title, setTitle] = useState(cv.title);
@@ -84,9 +90,8 @@ export function EditorTopBar({ cv }: { cv: CvDetail }) {
         </button>
         <button
           type="button"
-          disabled
-          title="Coming soon"
-          className="h-10 px-md flex items-center gap-sm rounded-lg bg-primary-container/50 text-on-primary-container/70 cursor-not-allowed text-label-md"
+          onClick={onImprove}
+          className="h-10 px-md flex items-center gap-sm rounded-lg bg-primary-container text-on-primary-container hover:bg-primary hover:text-on-primary transition-colors text-label-md"
         >
           <Icon name="auto_awesome" />
           Improve with AI

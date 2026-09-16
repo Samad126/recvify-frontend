@@ -203,3 +203,34 @@ export interface CreateCvFromUploadPayload {
   education?: EducationFields[];
   skills?: string[];
 }
+
+export type SuggestionScope = "WHOLE_CV" | "SUMMARY" | "EXPERIENCE";
+export type SuggestionStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "EDITED";
+export type SuggestionSource = "IMPROVE" | "JD_TAILOR";
+
+export interface AiSuggestion {
+  id: string;
+  sectionId: string;
+  entryId: string;
+  fieldKey: string;
+  label: string;
+  originalText: string;
+  suggestedText: string;
+  status: SuggestionStatus;
+  source: SuggestionSource;
+  createdAt: string;
+}
+
+export interface JobDescriptionAnalysis {
+  id: string;
+  rawText: string;
+  sourceType: "PASTE";
+  matchScore: number;
+  extractedKeywords: {
+    matched: string[];
+    missing: string[];
+    summary: string;
+  };
+  createdAt: string;
+  aiSuggestions: AiSuggestion[];
+}
