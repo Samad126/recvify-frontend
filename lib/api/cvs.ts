@@ -5,6 +5,7 @@ import type {
   CvDetail,
   CvListItem,
   CvSection,
+  EntryFieldStyles,
   EntryFields,
   Paginated,
   SectionType,
@@ -133,18 +134,18 @@ export function updateEntry(
   });
 }
 
-/** Per-entry style override (color/font/size) — cascades over the section/CV-level default. */
+/** Per-field style overrides for one entry (e.g. {jobTitle: {...}, company: {...}}) — each piece of text in the entry styles independently. */
 export function updateEntryStyle(
   cvId: string,
   sectionId: string,
   entryId: string,
-  styleOverridesJson: StyleOverrides,
+  styleOverridesJson: EntryFieldStyles,
 ) {
   return authedFetch<{
     id: string;
     fieldsJson: EntryFields;
     sortOrder: number;
-    styleOverridesJson: StyleOverrides | null;
+    styleOverridesJson: EntryFieldStyles | null;
   }>(`/cvs/${cvId}/sections/${sectionId}/entries/${entryId}`, {
     method: "PATCH",
     body: { styleOverridesJson },

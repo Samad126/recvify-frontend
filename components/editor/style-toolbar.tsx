@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import * as cvsApi from "@/lib/api/cvs";
 import * as templatesApi from "@/lib/api/templates";
@@ -18,7 +18,34 @@ interface StyleToolbarProps {
 export function StyleToolbar({ cv, zoom, onZoomChange }: StyleToolbarProps) {
   const queryClient = useQueryClient();
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const style = cv.styleOverridesJson ?? {};
+
+  // The toolbar scrolls horizontally (overflow-x-auto), which per the CSS spec
+  // forces its overflow-y to `auto` too — an `absolute` dropdown positioned
+  // under the trigger button would get clipped by the toolbar's own height
+  // instead of floating over the preview. `fixed` positioning (computed here)
+  // escapes that ancestor clipping entirely.
+  const openTemplatePicker = () => {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (rect) setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+    setTemplatePickerOpen(true);
+  };
+
+  useEffect(() => {
+    if (!templatePickerOpen) return;
+    const onPointerDown = (e: MouseEvent) => {
+      if (!triggerRef.current?.parentElement?.contains(e.target as Node)) {
+        setTemplatePickerOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, [templatePickerOpen]);
 
   const templateQuery = useQuery({
     queryKey: ["template", cv.templateId],
@@ -56,16 +83,24 @@ export function StyleToolbar({ cv, zoom, onZoomChange }: StyleToolbarProps) {
       <div className="flex items-center gap-sm shrink-0">
         <div className="relative">
           <button
+            ref={triggerRef}
             type="button"
-            onClick={() => setTemplatePickerOpen((o) => !o)}
+            onClick={() =>
+              templatePickerOpen
+                ? setTemplatePickerOpen(false)
+                : openTemplatePicker()
+            }
             className="flex items-center gap-xs px-sm py-xs rounded border border-outline-variant text-on-surface text-label-md hover:bg-surface-container transition-colors"
           >
             <Icon name="dashboard_customize" className="!text-base" />
             {templateQuery.data?.name ?? "Template"}
             <Icon name="arrow_drop_down" className="!text-base" />
           </button>
-          {templatePickerOpen && (
-            <div className="absolute left-0 top-full mt-xs w-72 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-flat-soft p-sm z-30 grid grid-cols-3 gap-sm">
+          {templatePickerOpen && dropdownPos && (
+            <div
+              style={{ top: dropdownPos.top, left: dropdownPos.left }}
+              className="fixed w-72 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-flat-soft p-sm z-40 grid grid-cols-3 gap-sm"
+            >
               {templatesQuery.data?.items.map((t) => (
                 <button
                   key={t.id}

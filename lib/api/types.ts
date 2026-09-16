@@ -132,11 +132,14 @@ export type EntryFields =
   | CertificationFields
   | CustomFields;
 
+/** Keyed by field name within fieldsJson (e.g. "jobTitle", "company") — each piece of text in an entry styles independently. */
+export type EntryFieldStyles = Record<string, StyleOverrides>;
+
 export interface CvEntry<T extends EntryFields = EntryFields> {
   id: string;
   fieldsJson: T;
   sortOrder: number;
-  styleOverridesJson: StyleOverrides | null;
+  styleOverridesJson: EntryFieldStyles | null;
 }
 
 export interface CvSection {
@@ -161,6 +164,8 @@ export interface StyleOverrides {
   fontSize?: number;
   accentColor?: string;
   theme?: "light" | "dark";
+  /** CV-level only: per-header-field overrides (fullName/title/email/phone/location). */
+  fieldOverrides?: Record<string, StyleOverrides>;
 }
 
 export interface CvDetail {

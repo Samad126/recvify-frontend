@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui/icon";
 import { Input } from "@/components/ui/input";
 import * as cvsApi from "@/lib/api/cvs";
@@ -33,6 +33,13 @@ export function PersonalDetailsSection({
     600,
   );
 
+  // Contact fields can also be edited inline in the preview panel — re-sync
+  // from props when that happens, unless this form currently has focus.
+  const isFocusedRef = useRef(false);
+  useEffect(() => {
+    if (!isFocusedRef.current) setLocal(contactInfo ?? EMPTY);
+  }, [contactInfo]);
+
   const set = (patch: Partial<ContactInfo>) => {
     const next = { ...local, ...patch };
     setLocal(next);
@@ -40,7 +47,17 @@ export function PersonalDetailsSection({
   };
 
   return (
-    <div className="border border-outline-variant rounded-lg bg-surface-container-lowest overflow-hidden">
+    <div
+      className="border border-outline-variant rounded-lg bg-surface-container-lowest overflow-hidden"
+      onFocusCapture={() => {
+        isFocusedRef.current = true;
+      }}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+          isFocusedRef.current = false;
+        }
+      }}
+    >
       <button
         type="button"
         onClick={() => setExpanded((e) => !e)}

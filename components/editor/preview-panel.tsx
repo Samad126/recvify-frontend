@@ -3,7 +3,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import * as cvsApi from "@/lib/api/cvs";
-import type { ContactInfo, CvDetail, StyleOverrides } from "@/lib/api/types";
+import type {
+  ContactInfo,
+  CvDetail,
+  EntryFieldStyles,
+  StyleOverrides,
+} from "@/lib/api/types";
 import { ResumeDocument } from "./resume-document";
 import { StyleToolbar } from "./style-toolbar";
 
@@ -34,16 +39,29 @@ export function PreviewPanel({ cv }: { cv: CvDetail }) {
     onSuccess: invalidate,
   });
 
-  const entryStyle = useMutation({
+  // The backend replaces styleOverridesJson wholesale, so a single-field patch
+  // has to be merged into the entry's current field-style map client-side first.
+  const entryFieldStyle = useMutation({
     mutationFn: ({
       sectionId,
       entryId,
+      fieldKey,
       style,
     }: {
       sectionId: string;
       entryId: string;
+      fieldKey: string;
       style: StyleOverrides;
-    }) => cvsApi.updateEntryStyle(cv.id, sectionId, entryId, style),
+    }) => {
+      const entry = cv.sections
+        .find((s) => s.id === sectionId)
+        ?.entries.find((e) => e.id === entryId);
+      const next: EntryFieldStyles = {
+        ...entry?.styleOverridesJson,
+        [fieldKey]: style,
+      };
+      return cvsApi.updateEntryStyle(cv.id, sectionId, entryId, next);
+    },
     onSuccess: invalidate,
   });
 
@@ -61,6 +79,29 @@ export function PreviewPanel({ cv }: { cv: CvDetail }) {
       sectionId: string;
       style: StyleOverrides;
     }) => cvsApi.updateSectionStyle(cv.id, sectionId, style),
+    onSuccess: invalidate,
+  });
+
+  // The header has no section/entry of its own — each of its fields (name,
+  // title, email, ...) gets its own slot in cv.styleOverridesJson.fieldOverrides,
+  // alongside the CV-wide base style the top toolbar edits.
+  const headerFieldStyle = useMutation({
+    mutationFn: ({
+      fieldKey,
+      style,
+    }: {
+      fieldKey: string;
+      style: StyleOverrides;
+    }) =>
+      cvsApi.updateCv(cv.id, {
+        styleOverridesJson: {
+          ...cv.styleOverridesJson,
+          fieldOverrides: {
+            ...cv.styleOverridesJson?.fieldOverrides,
+            [fieldKey]: style,
+          },
+        },
+      }),
     onSuccess: invalidate,
   });
 
@@ -85,14 +126,17 @@ export function PreviewPanel({ cv }: { cv: CvDetail }) {
             onEditEntryField={(sectionId, entryId, patch) =>
               editEntryField.mutate({ sectionId, entryId, patch })
             }
-            onEntryStyleChange={(sectionId, entryId, style) =>
-              entryStyle.mutate({ sectionId, entryId, style })
+            onEntryFieldStyleChange={(sectionId, entryId, fieldKey, style) =>
+              entryFieldStyle.mutate({ sectionId, entryId, fieldKey, style })
             }
             onSectionTitleChange={(sectionId, title) =>
               sectionTitle.mutate({ sectionId, title })
             }
             onSectionStyleChange={(sectionId, style) =>
               sectionStyle.mutate({ sectionId, style })
+            }
+            onHeaderFieldStyleChange={(fieldKey, style) =>
+              headerFieldStyle.mutate({ fieldKey, style })
             }
           />
         </div>
